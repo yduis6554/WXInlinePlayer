@@ -52,7 +52,8 @@ import Processor from "./processor/processor";
 import Loader from "./loader/loader";
 import Drawer from "./drawer/drawer";
 import Util from "./util/util";
-
+import Html2canvas from "html2canvas";
+//import Canvas2Image from "./util/canvas2image";
 /**
  * 生命周期对应的状态
  */
@@ -125,7 +126,6 @@ class WXInlinePlayer extends EventEmitter {
     ) {
       this.play();
     }
-    
   }
 
   static isSupport() {
@@ -172,8 +172,10 @@ class WXInlinePlayer extends EventEmitter {
       script.src = `${url}`;
       script.type = "text/javascript";
       head.appendChild(script);
+      //  解决截图空白问题 https://stackoverflow.com/questions/26783586/canvas-todataurl-returns-blank-image
       const script1 = document.createElement("script");
-      script1.innerText="HTMLCanvasElement.prototype.getContext=function(e){return function(t,n){return'webgl'===t&&(n=Object.assign({},n,{preserveDrawingBuffer:!0})),e.call(this,t,n)}}(HTMLCanvasElement.prototype.getContext);"
+      script1.innerText =
+        "HTMLCanvasElement.prototype.getContext=function(e){return function(t,n){return'webgl'===t&&(n=Object.assign({},n,{preserveDrawingBuffer:!0})),e.call(this,t,n)}}(HTMLCanvasElement.prototype.getContext);";
       head.appendChild(script1);
     });
   }
@@ -262,14 +264,33 @@ class WXInlinePlayer extends EventEmitter {
   }
 
   capture() {
-
-
-    this.$container.getContext("experimental-webgl", {
+    //截图方法一
+    // this.$container.getContext("experimental-webgl", {
+    //   preserveDrawingBuffer: true,
+    // }) ||
+    let c = this.$container;
+    c.getContext("webgl", {
       preserveDrawingBuffer: true,
     });
-    var blob = this.$container.toDataURL("image/png");
-    document.getElementById("img").src = blob;
-    console.log(blob);
+    var png = c.toDataURL("image/png");
+    Util.saveFile(png, "");
+    // //截图方法二
+    // Html2canvas(this.$container, {}).then((canvas) => {
+    //   const png = this.$container.toDataURL("image/png"); //拿到截图后转换为png图片
+    //   // const img = document.createElement("img");
+    //   // img.setAttribute("src", png);
+    //   // window.document.body.appendChild(img); //将png图片添加到页面验证
+
+    //   Util.saveFile(png, "");
+    //   // console.log(png);
+    // });
+  }
+
+  record() {
+    let c = this.$container;
+    c.getContext("webgl", {
+      preserveDrawingBuffer: true,
+    });
   }
 
   destroy() {
